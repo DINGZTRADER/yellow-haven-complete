@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Yellow Haven Bar Stock Sheet</title>
+  <link rel="icon" href="logo.png" type="image/png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+	
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #fffdee;
+            color: #222;
+            margin: 0;
+            padding: 10px;
+            font-size: 12px;
+        }
+        header {
+            background-color: #003300;
+            color: #f4af1b;
+            padding: 15px;
+            text-align: center;
+            font-size: 18px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .header-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .header-row label, select {
+            font-weight: bold;
+            font-size: 12px;
+        }
+        select, input[type="number"], input[type="text"], input[type="date"] {
+            padding: 4px;
+            font-size: 11px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .btn {
+            background-color: #f4af1b;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #e29b00;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        table th {
+            background-color: #003300;
+            color: white;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+            padding: 4px 6px;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            margin-top: 20px;
+            color: #777;
+        }
+        #logo {
+            height: 50px;
+            display: block;
+            margin: 0 auto 10px auto;
+        }
+    </style>    
+	
+	<script>
+	
+        function calculateSold() {
+            let total = 0;
+            document.querySelectorAll('.stock-row').forEach(row => {
+                const opening = parseInt(row.querySelector('.opening').value.replace(/,/g, '')) || 0;
+                const received = parseInt(row.querySelector('.received').value.replace(/,/g, '')) || 0;
+                const damaged = parseInt(row.querySelector('.damaged').value.replace(/,/g, '')) || 0;
+                const closing = parseInt(row.querySelector('.closing').value.replace(/,/g, '')) || 0;
+                const priceText = row.querySelector('.price').textContent.replace(/UGX\s?/i, '').replace(/,/g, '');
+                const price = parseInt(priceText) || 0;
+
+                const soldField = row.querySelector('.sold');
+                const sold = opening + received - damaged - closing;
+                soldField.value = sold;
+
+                total += sold * price;
+            });
+            document.getElementById('totalSales').textContent = 'UGX ' + total.toLocaleString();
+        }
+
+        function printSheet() {
+            window.print();
+        }
+
+        function exportExcel() {
+            const wb = XLSX.utils.book_new();
+            const ws_data = [["Item", "Opening", "Received", "Damaged", "Closing", "Sold", "Price"]];
+            document.querySelectorAll('.stock-row').forEach(row => {
+                const item = row.cells[0].innerText;
+                const opening = row.querySelector('.opening').value || "0";
+                const received = row.querySelector('.received').value || "0";
+                const damaged = row.querySelector('.damaged').value || "0";
+                const closing = row.querySelector('.closing').value || "0";
+                const sold = row.querySelector('.sold').value || "0";
+                const price = row.querySelector('.price').innerText;
+                ws_data.push([item, opening, received, damaged, closing, sold, price]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            XLSX.utils.book_append_sheet(wb, ws, "Sales");
+            const filename = `YellowHaven_BarSales_${new Date().toISOString().split("T")[0]}.xlsx`;
+            XLSX.writeFile(wb, filename);
+        }
+
+        async function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let y = 10;
+            doc.setFontSize(12);
+            doc.text("Yellow Haven Bar Sales Report", 10, y);
+            y += 10;
+
+            document.querySelectorAll('.stock-row').forEach(row => {
+                const item = row.cells[0].innerText;
+                const opening = row.querySelector('.opening').value || "0";
+                const received = row.querySelector('.received').value || "0";
+                const damaged = row.querySelector('.damaged').value || "0";
+                const closing = row.querySelector('.closing').value || "0";
+                const sold = row.querySelector('.sold').value || "0";
+                const price = row.querySelector('.price').innerText;
+                doc.text(`${item} | Opening: ${opening} | Received: ${received} | Damaged: ${damaged} | Closing: ${closing} | Sold: ${sold} | ${price}`, 10, y);
+                y += 8;
+                if (y > 270) {
+                    doc.addPage();
+                    y = 10;
+                }
+            });
+
+            const filename = `YellowHaven_BarSales_${new Date().toISOString().split("T")[0]}.pdf`;
+            doc.save(filename);
+        }
+
+        function syncData() {
+            alert("Sync function placeholder.");
+        }
+
+        async function sendEmailNow() {
+            const btn = document.getElementById('sendReportBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                                // Collect form data
+                const date = document.querySelector('input[type="date"]').value;
+                const barstaff = document.querySelector('select').value;
+                const items = [];
+                document.querySelectorAll('.stock-row').forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length === 0) return;
+                    const item = cells[0].innerText.trim();
+                    const opening = parseInt(row.querySelector('.opening')?.value || "0");
+                    const received = parseInt(row.querySelector('.received')?.value || "0");
+                    const damaged = parseInt(row.querySelector('.damaged')?.value || "0");
+                    const closing = parseInt(row.querySelector('.closing')?.value || "0");
+                    const sold = parseInt(row.querySelector('.sold')?.value || "0");
+                    const price = cells[6].innerText.trim();
+
+                    items.push({ item, opening, received, damaged, closing, sold, price });
+                });
+
+                const totalSales = document.getElementById('totalSales').textContent.trim();
+
+                const res = await fetch(' http://127.0.0.1:3000/send-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, barstaff, items, totalSales })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ Report sent successfully.');
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            } catch (err) {
+                alert('❌ Could not contact the server. Is it running?');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📧 Send Report Now';
+            }
+        }
+
+        window.onload = () => {
+            document.querySelectorAll('.price').forEach(cell => {
+                let text = cell.textContent.trim();
+                let match = text.match(/^UGX\s?(\d{4,})$/);
+                if (match) {
+                    let num = parseInt(match[1], 10);
+                    cell.textContent = "UGX " + num.toLocaleString();
+                }
+            });
+        };
+    </script>
+	</head>
+<body>
+  <header>
+    <img id="logo" src="logo.png" alt="YH Logo">
+    Yellow Haven Bar Manager
+  </header>
+  
+    <div class="header-row">
+      <label>Date: <input type="date"></label>
+      <label>Barstaff on Duty:
+            <select>
+                <option>Peter</option>
+				<option>Sophie</option>
+				<option>Solome</option>
+                <option>Alice</option><option>Janet</option>
+				<option>Nancy</option>
+           </select>
+        </label>
+        <button class="btn" onclick="calculateSold()">Calculate Sold</button>
+        <button class="btn" onclick="printSheet()">Print</button>
+        <button class="btn" onclick="exportExcel()">Export Excel</button>
+        <button class="btn" onclick="exportPDF()">Export PDF</button>
+        <button class="btn" onclick="syncData()">Sync</button>
+	    <button class="btn" id="sendReportBtn" onclick="sendEmailNow()">Send Report Now</button>
+    </div>
+  <table>
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Opening</th>
+      <th>Received</th>
+      <th>Damaged</th>
+      <th>Closing</th>
+      <th>Sold</th>
+      <th>Price</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- BEERS -->
+    <tr><th colspan="7" style="background:#ccffcc;color:#003300;text-align:left;">Beers</th></tr>
+    <tr class="stock-row"><td>Nile Special</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+    <tr class="stock-row"><td>Club</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+    <tr class="stock-row"><td>Castle Lite</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+    <tr class="stock-row"><td>Stella Artois</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+    <tr class="stock-row"><td>Heineken</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+    <tr class="stock-row"><td>Tusker Lager</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+    <tr class="stock-row"><td>Tusker Malt</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+    <tr class="stock-row"><td>Tusker Apple</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+    <tr class="stock-row"><td>Bell</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+    <tr class="stock-row"><td>Guinness</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+
+    <!-- SODAS -->
+    <tr><th colspan="7" style="background:#ccffcc;color:#003300;text-align:left;">Sodas</th></tr>
+    <tr class="stock-row"><td>Coca Cola</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
+    <tr class="stock-row"><td>Fanta</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
+    <tr class="stock-row"><td>Sprite</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
+    <tr class="stock-row"><td>Soda Water</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
+    <tr class="stock-row"><td>Tonic Water</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
+    <tr class="stock-row"><td>Stoney</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
+    <tr class="stock-row"><td>Novida</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
+    <tr class="stock-row"><td>Mineral Water Big</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 6,000</td></tr>
+    <tr class="stock-row"><td>Mineral Water Small</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 3,000</td></tr>
+    <tr class="stock-row"><td>Smirnoff Ice Black</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+	
+    <!-- SPIRITS -->
+    <tr><th colspan="7" style="background:#ccffcc;color:#003300;text-align:left;">Spirits</th></tr>
+    <tr class="stock-row"><td>Glenlivet Shots</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 15,000</td></tr>
+    <tr class="stock-row"><td>Uganda Waragi</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 8,000</td></tr>
+	<tr class="stock-row"><td>Black Label</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 10,000</td></tr>
+    <tr class="stock-row"><td>Red Label</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 8,000</td></tr>
+    <tr class="stock-row"><td>Smirnoff Vodka</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 8,000</td></tr>
+    <tr class="stock-row"><td>Baileys</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 10,000</td></tr>
+    <tr class="stock-row"><td>Amarula</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 8,000</td></tr>
+    <tr class="stock-row"><td>Tequila Shot</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 8,000</td></tr>
+
+  </tbody>
+  </table>
+    
+  <p><strong>Total Sales: <span id="totalSales">UGX 0</span></strong></p>
+  <p id="lastSent" style="font-size:11px; color:#333;">Last sent: <em>Never</em></p>
+
+  <h3>Drinks Taken by Manager/Director</h3>
+  <table>
+    <thead><tr><th>Item</th><th>No Taken</th><th>Type</th><th>Amount</th></tr></thead>
+    <tbody>
+      <tr><td><input type="text" /></td><td><input type="number" /></td><td><input type="text" /></td><td><input type="number" /></td></tr>
+      <tr><td><input type="text" /></td><td><input type="number" /></td><td><input type="text" /></td><td><input type="number" /></td></tr>
+    </tbody>
+  </table>
+
+
+  <div class="footer">
+    Yellow Haven Lodge | www.yellowhaven.com<br>
+    Designed by DingsAgent-PRO
+  </div>
+<script>
+  const { ipcRenderer } = require('electron');
+
+  function triggerGenerateReport() {
+    const btn = document.getElementById('sendReportBtn');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+    ipcRenderer.send('generate-report');
+  }
+
+  ipcRenderer.on('report-ready', (event, pdfPath) => {
+    const confirmSend = confirm("✅ Report is ready. Do you want to email it?");
+    if (confirmSend) {
+      ipcRenderer.send('send-pdf-email', pdfPath);
+    }
+    const btn = document.getElementById('sendReportBtn');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '📧 Send Report Now';
+    }
+  });
+  // 👇 Auto-fill opening stock from stock_data.json
+  window.onload = () => {
+    document.querySelectorAll('.price').forEach(cell => {
+      let text = cell.textContent.trim();
+      let match = text.match(/^UGX\s?(\d{4,})$/);
+      if (match) {
+        let num = parseInt(match[1], 10);
+        cell.textContent = "UGX " + num.toLocaleString();
+      }
+    });
+
+    fetch('stock_data.json')
+      .then(res => res.json())
+      .then(stock => {
+        stock.forEach(item => {
+          const row = [...document.querySelectorAll('.stock-row')].find(r =>
+            r.cells[0].innerText.trim() === item.item
+          );
+          if (row) {
+            const openingInput = row.querySelector('.opening');
+            const priceCell = row.querySelector('.price');
+
+            if (openingInput) openingInput.value = item.opening || 0;
+            if (priceCell && item.price) priceCell.textContent = item.price;
+          }
+        });
+      })
+      .catch(err => console.warn('⚠️ Failed to load stock_data.json:', err));
+  };
+</script>
+  </body>
+</html>
