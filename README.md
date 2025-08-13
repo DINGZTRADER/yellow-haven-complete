@@ -80,4 +80,10 @@ Proprietary – Not for redistribution without permission.
 ## Download
 [⬇️ Download Yellow Haven Bar Manager Installer](https://DINGZTRADER/yellow-haven-complete)
 
+## Download
+Choose the version for your PC:
+
+- [64-bit Windows]([https://drive.google.com/drive/u/0/folders/1sttMQRHPDS7Awc_lykQnPzQWbOgMvgtG]) -
+- [32-bit Windows]([[https://drive.google.com/file/d/1AFgK0QdV4eQBhl6xXrL6_qdDFkyVYOfe/view?usp=drive_link])
+
 
