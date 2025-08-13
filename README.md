@@ -1,4 +1,9 @@
 Yellow Haven App
+
+Algorithm : SHA256
+Hash      : 87C2AC275DA3F54091C760ED9072D34D6886CAD56F70EAE4399BF506ABD20B9D
+Path      : E:\yellow-haven-complete\dist\Yellow-Haven-Installer-x64.zip
+
 A desktop application for managing Yellow Haven Lodge operations.
 This version can be built for both 64-bit (x64) and 32-bit (ia32) Windows systems.
 
