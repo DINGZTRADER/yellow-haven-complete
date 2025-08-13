@@ -1,5 +1,9 @@
 Yellow Haven App
 
+On first run, open Settings and enter SMTP_USER, SMTP_PASS (Google App Password), SMTP_TO, SMTP_NAME
+
+Windows SmartScreen may warn. Click More info → Run anyway
+
 Algorithm : SHA256
 Hash      : 87C2AC275DA3F54091C760ED9072D34D6886CAD56F70EAE4399BF506ABD20B9D
 Path      : E:\yellow-haven-complete\dist\Yellow-Haven-Installer-x64.zip
