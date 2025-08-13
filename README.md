@@ -1,0 +1,74 @@
+Yellow Haven App
+A desktop application for managing Yellow Haven Lodge operations.
+This version can be built for both 64-bit (x64) and 32-bit (ia32) Windows systems.
+
+📦 Features
+Works on Windows 32-bit and 64-bit
+
+Built using Electron
+
+Optimized for business use
+
+Easy to install and run
+
+🖥️ Requirements
+Node.js (v18+ recommended)
+
+npm or yarn
+
+Windows PC (32-bit or 64-bit)
+
+⚙️ Installation
+Clone the repository:
+
+bash
+Copy
+Edit
+git clone https://github.com/<your-username>/<your-repo>.git
+cd <your-repo>
+Install dependencies:
+
+bash
+Copy
+Edit
+npm install
+🏗️ Building for Your Architecture
+64-bit build (x64)
+bash
+Copy
+Edit
+electron-builder --win --x64
+Output:
+dist/YOUR_APP_Setup_x64.exe
+
+32-bit build (ia32) — works on both 32-bit and 64-bit Windows
+bash
+Copy
+Edit
+electron-builder --win --ia32
+Output:
+dist/YOUR_APP_Setup_ia32.exe
+
+🛠️ Rebuilding Native Modules for 32-bit
+If your app uses native Node modules:
+
+bash
+Copy
+Edit
+npm rebuild --arch=ia32 --platform=win32
+▶️ Running in Development
+bash
+Copy
+Edit
+npm start
+📂 Output Files
+Installer: Located in the dist folder
+
+Portable App: Located in the dist/win-ia32-unpacked or dist/win-x64-unpacked folder
+
+📜 License
+Proprietary – Not for redistribution without permission.
+## Download
+[⬇️ Download Yellow Haven Bar Manager Installer](https://DINGZTRADER/yellow-haven-complete)
+
+
