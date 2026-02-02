@@ -1,361 +1,627 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <title>Yellow Haven Bar Stock Sheet</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="SAFE Bar and Lounge Stock Management System - Track inventory, calculate sales, and generate reports">
+  <title>SAFE bar and lounge Stock Sheet</title>
   <link rel="icon" href="logo.png" type="image/png">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-	
+  <link rel="stylesheet" href="style.css">
 
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #fffdee;
-            color: #222;
-            margin: 0;
-            padding: 10px;
-            font-size: 12px;
-        }
-        header {
-            background-color: #003300;
-            color: #f4af1b;
-            padding: 15px;
-            text-align: center;
-            font-size: 18px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        .header-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .header-row label, select {
-            font-weight: bold;
-            font-size: 12px;
-        }
-        select, input[type="number"], input[type="text"], input[type="date"] {
-            padding: 4px;
-            font-size: 11px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-        .btn {
-            background-color: #f4af1b;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            margin-right: 8px;
-            cursor: pointer;
-        }
-        .btn:hover {
-            background-color: #e29b00;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        table th {
-            background-color: #003300;
-            color: white;
-        }
-        table, th, td {
-            border: 1px solid #ccc;
-            padding: 4px 6px;
-            text-align: center;
-        }
-        .footer {
-            text-align: center;
-            font-size: 10px;
-            margin-top: 20px;
-            color: #777;
-        }
-        #logo {
-            height: 50px;
-            display: block;
-            margin: 0 auto 10px auto;
-        }
-    </style>    
-	
-	<script>
-	
-        function calculateSold() {
-            let total = 0;
-            document.querySelectorAll('.stock-row').forEach(row => {
-                const opening = parseInt(row.querySelector('.opening').value.replace(/,/g, '')) || 0;
-                const received = parseInt(row.querySelector('.received').value.replace(/,/g, '')) || 0;
-                const damaged = parseInt(row.querySelector('.damaged').value.replace(/,/g, '')) || 0;
-                const closing = parseInt(row.querySelector('.closing').value.replace(/,/g, '')) || 0;
-                const priceText = row.querySelector('.price').textContent.replace(/UGX\s?/i, '').replace(/,/g, '');
-                const price = parseInt(priceText) || 0;
+  <script>
 
-                const soldField = row.querySelector('.sold');
-                const sold = opening + received - damaged - closing;
-                soldField.value = sold;
+    function calculateSold() {
+      let total = 0;
+      document.querySelectorAll('.stock-row').forEach(row => {
+        const opening = parseInt(row.querySelector('.opening').value.replace(/,/g, '')) || 0;
+        const received = parseInt(row.querySelector('.received').value.replace(/,/g, '')) || 0;
+        const damaged = parseInt(row.querySelector('.damaged').value.replace(/,/g, '')) || 0;
+        const closing = parseInt(row.querySelector('.closing').value.replace(/,/g, '')) || 0;
+        const priceText = row.querySelector('.price').textContent.replace(/UGX\s?/i, '').replace(/,/g, '');
+        const price = parseInt(priceText) || 0;
 
-                total += sold * price;
-            });
-            document.getElementById('totalSales').textContent = 'UGX ' + total.toLocaleString();
+        const soldField = row.querySelector('.sold');
+        const sold = opening + received - damaged - closing;
+        soldField.value = sold;
+
+        total += sold * price;
+      });
+      document.getElementById('totalSales').textContent = 'UGX ' + total.toLocaleString();
+    }
+
+    function printSheet() {
+      window.print();
+    }
+
+    function exportExcel() {
+      const wb = XLSX.utils.book_new();
+      const ws_data = [["Item", "Opening", "Received", "Damaged", "Closing", "Sold", "Price"]];
+      document.querySelectorAll('.stock-row').forEach(row => {
+        const item = row.cells[0].innerText;
+        const opening = row.querySelector('.opening').value || "0";
+        const received = row.querySelector('.received').value || "0";
+        const damaged = row.querySelector('.damaged').value || "0";
+        const closing = row.querySelector('.closing').value || "0";
+        const sold = row.querySelector('.sold').value || "0";
+        const price = row.querySelector('.price').innerText;
+        ws_data.push([item, opening, received, damaged, closing, sold, price]);
+      });
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      XLSX.utils.book_append_sheet(wb, ws, "Sales");
+      const filename = `SAFEBarAndLounge_BarSales_${new Date().toISOString().split("T")[0]}.xlsx`;
+      XLSX.writeFile(wb, filename);
+    }
+
+    async function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let y = 10;
+      doc.setFontSize(12);
+      doc.text("SAFE bar and lounge Sales Report", 10, y);
+      y += 10;
+
+      document.querySelectorAll('.stock-row').forEach(row => {
+        const item = row.cells[0].innerText;
+        const opening = row.querySelector('.opening').value || "0";
+        const received = row.querySelector('.received').value || "0";
+        const damaged = row.querySelector('.damaged').value || "0";
+        const closing = row.querySelector('.closing').value || "0";
+        const sold = row.querySelector('.sold').value || "0";
+        const price = row.querySelector('.price').innerText;
+        doc.text(`${item} | Opening: ${opening} | Received: ${received} | Damaged: ${damaged} | Closing: ${closing} | Sold: ${sold} | ${price}`, 10, y);
+        y += 8;
+        if (y > 270) {
+          doc.addPage();
+          y = 10;
         }
+      });
 
-        function printSheet() {
-            window.print();
+      const filename = `SAFEBarAndLounge_BarSales_${new Date().toISOString().split("T")[0]}.pdf`;
+      doc.save(filename);
+    }
+
+    function syncData() {
+      alert("Sync function placeholder.");
+    }
+
+    async function sendEmailNow() {
+      const btn = document.getElementById('sendReportBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      try {
+        // Collect form data
+        const date = document.querySelector('input[type="date"]').value;
+        const barstaff = document.querySelector('select').value;
+        const items = [];
+        document.querySelectorAll('.stock-row').forEach(row => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length === 0) return;
+          const item = cells[0].innerText.trim();
+          const opening = parseInt(row.querySelector('.opening')?.value || "0");
+          const received = parseInt(row.querySelector('.received')?.value || "0");
+          const damaged = parseInt(row.querySelector('.damaged')?.value || "0");
+          const closing = parseInt(row.querySelector('.closing')?.value || "0");
+          const sold = parseInt(row.querySelector('.sold')?.value || "0");
+          const price = cells[6].innerText.trim();
+
+          items.push({ item, opening, received, damaged, closing, sold, price });
+        });
+
+        const totalSales = document.getElementById('totalSales').textContent.trim();
+
+        const res = await fetch(' http://127.0.0.1:3000/send-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date, barstaff, items, totalSales })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('✅ Report sent successfully.');
+        } else {
+          alert('❌ Error: ' + data.message);
         }
+      } catch (err) {
+        alert('❌ Could not contact the server. Is it running?');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📧 Send Report Now';
+      }
+    }
 
-        function exportExcel() {
-            const wb = XLSX.utils.book_new();
-            const ws_data = [["Item", "Opening", "Received", "Damaged", "Closing", "Sold", "Price"]];
-            document.querySelectorAll('.stock-row').forEach(row => {
-                const item = row.cells[0].innerText;
-                const opening = row.querySelector('.opening').value || "0";
-                const received = row.querySelector('.received').value || "0";
-                const damaged = row.querySelector('.damaged').value || "0";
-                const closing = row.querySelector('.closing').value || "0";
-                const sold = row.querySelector('.sold').value || "0";
-                const price = row.querySelector('.price').innerText;
-                ws_data.push([item, opening, received, damaged, closing, sold, price]);
-            });
-            const ws = XLSX.utils.aoa_to_sheet(ws_data);
-            XLSX.utils.book_append_sheet(wb, ws, "Sales");
-            const filename = `YellowHaven_BarSales_${new Date().toISOString().split("T")[0]}.xlsx`;
-            XLSX.writeFile(wb, filename);
+    window.onload = () => {
+      document.querySelectorAll('.price').forEach(cell => {
+        let text = cell.textContent.trim();
+        let match = text.match(/^UGX\s?(\d{4,})$/);
+        if (match) {
+          let num = parseInt(match[1], 10);
+          cell.textContent = "UGX " + num.toLocaleString();
         }
+      });
+    };
+  </script>
+</head>
 
-        async function exportPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            let y = 10;
-            doc.setFontSize(12);
-            doc.text("Yellow Haven Bar Sales Report", 10, y);
-            y += 10;
-
-            document.querySelectorAll('.stock-row').forEach(row => {
-                const item = row.cells[0].innerText;
-                const opening = row.querySelector('.opening').value || "0";
-                const received = row.querySelector('.received').value || "0";
-                const damaged = row.querySelector('.damaged').value || "0";
-                const closing = row.querySelector('.closing').value || "0";
-                const sold = row.querySelector('.sold').value || "0";
-                const price = row.querySelector('.price').innerText;
-                doc.text(`${item} | Opening: ${opening} | Received: ${received} | Damaged: ${damaged} | Closing: ${closing} | Sold: ${sold} | ${price}`, 10, y);
-                y += 8;
-                if (y > 270) {
-                    doc.addPage();
-                    y = 10;
-                }
-            });
-
-            const filename = `YellowHaven_BarSales_${new Date().toISOString().split("T")[0]}.pdf`;
-            doc.save(filename);
-        }
-
-        function syncData() {
-            alert("Sync function placeholder.");
-        }
-
-        async function sendEmailNow() {
-            const btn = document.getElementById('sendReportBtn');
-            btn.disabled = true;
-            btn.textContent = 'Sending...';
-
-            try {
-                                // Collect form data
-                const date = document.querySelector('input[type="date"]').value;
-                const barstaff = document.querySelector('select').value;
-                const items = [];
-                document.querySelectorAll('.stock-row').forEach(row => {
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length === 0) return;
-                    const item = cells[0].innerText.trim();
-                    const opening = parseInt(row.querySelector('.opening')?.value || "0");
-                    const received = parseInt(row.querySelector('.received')?.value || "0");
-                    const damaged = parseInt(row.querySelector('.damaged')?.value || "0");
-                    const closing = parseInt(row.querySelector('.closing')?.value || "0");
-                    const sold = parseInt(row.querySelector('.sold')?.value || "0");
-                    const price = cells[6].innerText.trim();
-
-                    items.push({ item, opening, received, damaged, closing, sold, price });
-                });
-
-                const totalSales = document.getElementById('totalSales').textContent.trim();
-
-                const res = await fetch(' http://127.0.0.1:3000/send-report', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date, barstaff, items, totalSales })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert('✅ Report sent successfully.');
-                } else {
-                    alert('❌ Error: ' + data.message);
-                }
-            } catch (err) {
-                alert('❌ Could not contact the server. Is it running?');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '📧 Send Report Now';
-            }
-        }
-
-        window.onload = () => {
-            document.querySelectorAll('.price').forEach(cell => {
-                let text = cell.textContent.trim();
-                let match = text.match(/^UGX\s?(\d{4,})$/);
-                if (match) {
-                    let num = parseInt(match[1], 10);
-                    cell.textContent = "UGX " + num.toLocaleString();
-                }
-            });
-        };
-    </script>
-	</head>
 <body>
   <header>
-    <img id="logo" src="logo.png" alt="YH Logo">
-    Yellow Haven Bar Manager
-  </header>
-  
-    <div class="header-row">
-      <label>Date: <input type="date"></label>
-      <label>Barstaff on Duty:
-            <select>
-                <option>Peter</option>
-				<option>Sophie</option>
-				<option>Solome</option>
-                <option>Alice</option><option>Janet</option>
-				<option>Nancy</option>
-           </select>
-        </label>
-        <button class="btn" onclick="calculateSold()">Calculate Sold</button>
-        <button class="btn" onclick="printSheet()">Print</button>
-        <button class="btn" onclick="exportExcel()">Export Excel</button>
-        <button class="btn" onclick="exportPDF()">Export PDF</button>
-        <button class="btn" onclick="syncData()">Sync</button>
-	    <button class="btn" id="sendReportBtn" onclick="sendEmailNow()">Send Report Now</button>
+    <div class="header-left">
+      <img id="logo" src="logo.png" alt="YH Logo">
+      <span class="header-title">SAFE bar and lounge Bar Manager</span>
     </div>
+    <div class="header-right">
+      <span id="currentUserDisplay" class="user-display"></span>
+      <button class="btn btn-settings" onclick="location.href='settings.html'">⚙️ Settings</button>
+      <button class="btn btn-logout" onclick="logout()">Log Out</button>
+    </div>
+  </header>
+
+  <div class="header-row">
+    <label>Date: <input type="date"></label>
+    <label>Barstaff on Duty:
+      <select id="staffSelect">
+        <option>Loading...</option>
+      </select>
+    </label>
+    <button class="btn" onclick="calculateSold()">Calculate Sold</button>
+    <button class="btn" onclick="printSheet()">Print</button>
+    <button class="btn" onclick="exportExcel()">Export Excel</button>
+    <button class="btn" onclick="exportPDF()">Export PDF</button>
+    <button class="btn" onclick="syncData()">Sync</button>
+    <button class="btn" id="sendReportBtn" onclick="sendEmailNow()">Send Report Now</button>
+  </div>
   <table>
-  <thead>
-    <tr>
-      <th>Item</th>
-      <th>Opening</th>
-      <th>Received</th>
-      <th>Damaged</th>
-      <th>Closing</th>
-      <th>Sold</th>
-      <th>Price</th>
-    </tr>
-  </thead>
-  <tbody>
-    <!-- BEERS -->
-    <tr><th colspan="7" style="background:#ccffcc;color:#003300;text-align:left;">Beers</th></tr>
-    <tr class="stock-row"><td>Nile Special</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
-    <tr class="stock-row"><td>Club</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
-    <tr class="stock-row"><td>Castle Lite</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
-    <tr class="stock-row"><td>Stella Artois</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
-    <tr class="stock-row"><td>Heineken</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
-    <tr class="stock-row"><td>Tusker Lager</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
-    <tr class="stock-row"><td>Tusker Malt</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
-    <tr class="stock-row"><td>Tusker Apple</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
-    <tr class="stock-row"><td>Bell</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
-    <tr class="stock-row"><td>Guinness</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Opening</th>
+        <th>Received</th>
+        <th>Damaged</th>
+        <th>Closing</th>
+        <th>Sold</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- BEERS -->
+      <tr>
+        <th colspan="7" class="section-header">Beers</th>
+      </tr>
+      <tr class="stock-row">
+        <td>Nile Special</td>
+        <td><input class="opening" type="number" aria-label="Nile Special Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Nile Special Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Nile Special Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Nile Special Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Nile Special Sold" /></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Club</td>
+        <td><input class="opening" type="number" aria-label="Club Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Club Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Club Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Club Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Club Sold" /></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Castle Lite</td>
+        <td><input class="opening" type="number" aria-label="Castle Lite Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Castle Lite Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Castle Lite Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Castle Lite Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Castle Lite Sold" /></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Stella Artois</td>
+        <td><input class="opening" type="number" aria-label="Stella Artois Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Stella Artois Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Stella Artois Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Stella Artois Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Stella Artois Sold" /></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Heineken</td>
+        <td><input class="opening" type="number" aria-label="Heineken Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Heineken Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Heineken Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Heineken Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Heineken Sold" /></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Tusker Lager</td>
+        <td><input class="opening" type="number" aria-label="Tusker Lager Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Tusker Lager Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Tusker Lager Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Tusker Lager Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Tusker Lager Sold" /></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Tusker Malt</td>
+        <td><input class="opening" type="number" aria-label="Tusker Malt Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Tusker Malt Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Tusker Malt Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Tusker Malt Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Tusker Malt Sold" /></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Tusker Apple</td>
+        <td><input class="opening" type="number" aria-label="Tusker Apple Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Tusker Apple Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Tusker Apple Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Tusker Apple Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Tusker Apple Sold" /></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Bell</td>
+        <td><input class="opening" type="number" aria-label="Bell Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Bell Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Bell Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Bell Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Bell Sold" /></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Guinness</td>
+        <td><input class="opening" type="number" aria-label="Guinness Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Guinness Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Guinness Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Guinness Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Guinness Sold" /></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
 
-    <!-- SODAS -->
-    <tr><th colspan="7" style="background:#ccffcc;color:#003300;text-align:left;">Sodas</th></tr>
-    <tr class="stock-row"><td>Coca Cola</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
-    <tr class="stock-row"><td>Fanta</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
-    <tr class="stock-row"><td>Sprite</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
-    <tr class="stock-row"><td>Soda Water</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
-    <tr class="stock-row"><td>Tonic Water</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
-    <tr class="stock-row"><td>Stoney</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
-    <tr class="stock-row"><td>Novida</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 4,000</td></tr>
-    <tr class="stock-row"><td>Mineral Water Big</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 6,000</td></tr>
-    <tr class="stock-row"><td>Mineral Water Small</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 3,000</td></tr>
-    <tr class="stock-row"><td>Smirnoff Ice Black</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 10,000</td></tr>
-	
-    <!-- SPIRITS -->
-    <tr><th colspan="7" style="background:#ccffcc;color:#003300;text-align:left;">Spirits</th></tr>
-    <tr class="stock-row"><td>Glenlivet Shots</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 15,000</td></tr>
-    <tr class="stock-row"><td>Uganda Waragi</td><td><input class="opening" type="number" /></td><td><input class="received" type="number" /></td><td><input class="damaged" type="number" /></td><td><input class="closing" type="number" /></td><td><input class="sold" type="number" readonly /></td><td class="price">UGX 8,000</td></tr>
-	<tr class="stock-row"><td>Black Label</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 10,000</td></tr>
-    <tr class="stock-row"><td>Red Label</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 8,000</td></tr>
-    <tr class="stock-row"><td>Smirnoff Vodka</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 8,000</td></tr>
-    <tr class="stock-row"><td>Baileys</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 10,000</td></tr>
-    <tr class="stock-row"><td>Amarula</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 8,000</td></tr>
-    <tr class="stock-row"><td>Tequila Shot</td><td><input class="opening"></td><td><input class="received"></td><td><input class="damaged"></td><td><input class="closing"></td><td><input class="sold" readonly></td><td class="price">UGX 8,000</td></tr>
+      <!-- SODAS -->
+      <tr>
+        <th colspan="7" class="section-header">Sodas</th>
+      </tr>
+      <tr class="stock-row">
+        <td>Coca Cola</td>
+        <td><input class="opening" type="number" aria-label="Coca Cola Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Coca Cola Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Coca Cola Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Coca Cola Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Coca Cola Sold" /></td>
+        <td class="price">UGX 4,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Fanta</td>
+        <td><input class="opening" type="number" aria-label="Fanta Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Fanta Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Fanta Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Fanta Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Fanta Sold" /></td>
+        <td class="price">UGX 4,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Sprite</td>
+        <td><input class="opening" type="number" aria-label="Sprite Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Sprite Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Sprite Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Sprite Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Sprite Sold" /></td>
+        <td class="price">UGX 4,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Soda Water</td>
+        <td><input class="opening" type="number" aria-label="Soda Water Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Soda Water Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Soda Water Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Soda Water Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Soda Water Sold" /></td>
+        <td class="price">UGX 4,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Tonic Water</td>
+        <td><input class="opening" type="number" aria-label="Tonic Water Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Tonic Water Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Tonic Water Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Tonic Water Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Tonic Water Sold" /></td>
+        <td class="price">UGX 4,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Stoney</td>
+        <td><input class="opening" type="number" aria-label="Stoney Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Stoney Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Stoney Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Stoney Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Stoney Sold" /></td>
+        <td class="price">UGX 4,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Novida</td>
+        <td><input class="opening" type="number" aria-label="Novida Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Novida Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Novida Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Novida Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Novida Sold" /></td>
+        <td class="price">UGX 4,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Mineral Water Big</td>
+        <td><input class="opening" type="number" aria-label="Mineral Water Big Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Mineral Water Big Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Mineral Water Big Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Mineral Water Big Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Mineral Water Big Sold" /></td>
+        <td class="price">UGX 6,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Mineral Water Small</td>
+        <td><input class="opening" type="number" aria-label="Mineral Water Small Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Mineral Water Small Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Mineral Water Small Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Mineral Water Small Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Mineral Water Small Sold" /></td>
+        <td class="price">UGX 3,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Smirnoff Ice Black</td>
+        <td><input class="opening" type="number" aria-label="Smirnoff Ice Black Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Smirnoff Ice Black Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Smirnoff Ice Black Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Smirnoff Ice Black Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Smirnoff Ice Black Sold" /></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
 
-  </tbody>
+      <!-- SPIRITS -->
+      <tr>
+        <th colspan="7" class="section-header">Spirits</th>
+      </tr>
+      <tr class="stock-row">
+        <td>Glenlivet Shots</td>
+        <td><input class="opening" type="number" aria-label="Glenlivet Shots Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Glenlivet Shots Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Glenlivet Shots Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Glenlivet Shots Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Glenlivet Shots Sold" /></td>
+        <td class="price">UGX 15,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Uganda Waragi</td>
+        <td><input class="opening" type="number" aria-label="Uganda Waragi Opening Stock" /></td>
+        <td><input class="received" type="number" aria-label="Uganda Waragi Received" /></td>
+        <td><input class="damaged" type="number" aria-label="Uganda Waragi Damaged" /></td>
+        <td><input class="closing" type="number" aria-label="Uganda Waragi Closing Stock" /></td>
+        <td><input class="sold" type="number" readonly aria-label="Uganda Waragi Sold" /></td>
+        <td class="price">UGX 8,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Black Label</td>
+        <td><input class="opening" type="number" aria-label="Black Label Opening Stock"></td>
+        <td><input class="received" type="number" aria-label="Black Label Received"></td>
+        <td><input class="damaged" type="number" aria-label="Black Label Damaged"></td>
+        <td><input class="closing" type="number" aria-label="Black Label Closing Stock"></td>
+        <td><input class="sold" type="number" readonly aria-label="Black Label Sold"></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Red Label</td>
+        <td><input class="opening" type="number" aria-label="Red Label Opening Stock"></td>
+        <td><input class="received" type="number" aria-label="Red Label Received"></td>
+        <td><input class="damaged" type="number" aria-label="Red Label Damaged"></td>
+        <td><input class="closing" type="number" aria-label="Red Label Closing Stock"></td>
+        <td><input class="sold" type="number" readonly aria-label="Red Label Sold"></td>
+        <td class="price">UGX 8,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Smirnoff Vodka</td>
+        <td><input class="opening" type="number" aria-label="Smirnoff Vodka Opening Stock"></td>
+        <td><input class="received" type="number" aria-label="Smirnoff Vodka Received"></td>
+        <td><input class="damaged" type="number" aria-label="Smirnoff Vodka Damaged"></td>
+        <td><input class="closing" type="number" aria-label="Smirnoff Vodka Closing Stock"></td>
+        <td><input class="sold" type="number" readonly aria-label="Smirnoff Vodka Sold"></td>
+        <td class="price">UGX 8,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Baileys</td>
+        <td><input class="opening" type="number" aria-label="Baileys Opening Stock"></td>
+        <td><input class="received" type="number" aria-label="Baileys Received"></td>
+        <td><input class="damaged" type="number" aria-label="Baileys Damaged"></td>
+        <td><input class="closing" type="number" aria-label="Baileys Closing Stock"></td>
+        <td><input class="sold" type="number" readonly aria-label="Baileys Sold"></td>
+        <td class="price">UGX 10,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Amarula</td>
+        <td><input class="opening" type="number" aria-label="Amarula Opening Stock"></td>
+        <td><input class="received" type="number" aria-label="Amarula Received"></td>
+        <td><input class="damaged" type="number" aria-label="Amarula Damaged"></td>
+        <td><input class="closing" type="number" aria-label="Amarula Closing Stock"></td>
+        <td><input class="sold" type="number" readonly aria-label="Amarula Sold"></td>
+        <td class="price">UGX 8,000</td>
+      </tr>
+      <tr class="stock-row">
+        <td>Tequila Shot</td>
+        <td><input class="opening" type="number" aria-label="Tequila Shot Opening Stock"></td>
+        <td><input class="received" type="number" aria-label="Tequila Shot Received"></td>
+        <td><input class="damaged" type="number" aria-label="Tequila Shot Damaged"></td>
+        <td><input class="closing" type="number" aria-label="Tequila Shot Closing Stock"></td>
+        <td><input class="sold" type="number" readonly aria-label="Tequila Shot Sold"></td>
+        <td class="price">UGX 8,000</td>
+      </tr>
+
+    </tbody>
   </table>
-    
+
   <p><strong>Total Sales: <span id="totalSales">UGX 0</span></strong></p>
-  <p id="lastSent" style="font-size:11px; color:#333;">Last sent: <em>Never</em></p>
+  <p id="lastSent" class="info-text">Last sent: <em>Never</em></p>
 
   <h3>Drinks Taken by Manager/Director</h3>
   <table>
-    <thead><tr><th>Item</th><th>No Taken</th><th>Type</th><th>Amount</th></tr></thead>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>No Taken</th>
+        <th>Type</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
     <tbody>
-      <tr><td><input type="text" /></td><td><input type="number" /></td><td><input type="text" /></td><td><input type="number" /></td></tr>
-      <tr><td><input type="text" /></td><td><input type="number" /></td><td><input type="text" /></td><td><input type="number" /></td></tr>
+      <tr>
+        <td><input type="text" aria-label="Manager Drink Item 1" /></td>
+        <td><input type="number" aria-label="Manager Drink Quantity 1" /></td>
+        <td><input type="text" aria-label="Manager Drink Type 1" /></td>
+        <td><input type="number" aria-label="Manager Drink Amount 1" /></td>
+      </tr>
+      <tr>
+        <td><input type="text" aria-label="Manager Drink Item 2" /></td>
+        <td><input type="number" aria-label="Manager Drink Quantity 2" /></td>
+        <td><input type="text" aria-label="Manager Drink Type 2" /></td>
+        <td><input type="number" aria-label="Manager Drink Amount 2" /></td>
+      </tr>
     </tbody>
   </table>
 
 
   <div class="footer">
-    Yellow Haven Lodge | www.yellowhaven.com<br>
+    SAFE bar and lounge | www.safebarandlounge.com<br>
     Designed by DingsAgent-PRO
   </div>
-<script>
-  const { ipcRenderer } = require('electron');
+  <script>
+    // ✅ Secure IPC via preload script (window.api)
 
-  function triggerGenerateReport() {
-    const btn = document.getElementById('sendReportBtn');
-    btn.disabled = true;
-    btn.textContent = 'Generating...';
-    ipcRenderer.send('generate-report');
-  }
+    async function generateAndEmailReport() {
+      const btn = document.getElementById('sendReportBtn');
+      btn.disabled = true;
+      btn.textContent = 'Generating PDF...';
 
-  ipcRenderer.on('report-ready', (event, pdfPath) => {
-    const confirmSend = confirm("✅ Report is ready. Do you want to email it?");
-    if (confirmSend) {
-      ipcRenderer.send('send-pdf-email', pdfPath);
+      // 1. Generate PDF Client-Side
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let y = 10;
+      doc.setFontSize(12);
+      doc.text("SAFE bar and lounge Sales Report", 10, y);
+      y += 10;
+      doc.text(`Date: ${document.querySelector('input[type="date"]').value}`, 10, y);
+      y += 10;
+
+      document.querySelectorAll('.stock-row').forEach(row => {
+        const item = row.cells[0].innerText;
+        const opening = row.querySelector('.opening').value || "0";
+        const received = row.querySelector('.received').value || "0";
+        const damaged = row.querySelector('.damaged').value || "0";
+        const closing = row.querySelector('.closing').value || "0";
+        const sold = row.querySelector('.sold').value || "0";
+        const price = row.querySelector('.price').innerText;
+
+        let line = `${item} | Op:${opening} Rec:${received} Dmg:${damaged} Cls:${closing} | Sold:${sold}`;
+        doc.text(line, 10, y);
+        y += 7;
+
+        if (y > 280) {
+          doc.addPage();
+          y = 10;
+        }
+      });
+
+      // 2. Convert to ArrayBuffer
+      const pdfArrayBuffer = doc.output('arraybuffer');
+      const filename = `SAFEBar_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      // 3. Send to Main Process to Save
+      btn.textContent = 'Saving...';
+      window.api.send('save-pdf', {
+        buffer: pdfArrayBuffer,
+        name: filename
+      });
     }
-    const btn = document.getElementById('sendReportBtn');
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = '📧 Send Report Now';
-    }
-  });
-  // 👇 Auto-fill opening stock from stock_data.json
-  window.onload = () => {
-    document.querySelectorAll('.price').forEach(cell => {
-      let text = cell.textContent.trim();
-      let match = text.match(/^UGX\s?(\d{4,})$/);
-      if (match) {
-        let num = parseInt(match[1], 10);
-        cell.textContent = "UGX " + num.toLocaleString();
+
+    // 4. Listen for 'Saved' event and Trigger Email
+    window.api.receive('report-saved', (filePath) => {
+      console.log('PDF Saved at:', filePath);
+
+      const confirmSend = confirm(`✅ Report ready!\nSaved to: ${filePath}\n\nDo you want to email it now?`);
+      const btn = document.getElementById('sendReportBtn');
+
+      if (confirmSend) {
+        btn.textContent = 'Sending Email...';
+        window.api.send('send-pdf-email', filePath);
+      } else {
+        btn.disabled = false;
+        btn.textContent = '📧 Send Report Now';
       }
     });
 
-    fetch('stock_data.json')
-      .then(res => res.json())
-      .then(stock => {
-        stock.forEach(item => {
-          const row = [...document.querySelectorAll('.stock-row')].find(r =>
-            r.cells[0].innerText.trim() === item.item
-          );
-          if (row) {
-            const openingInput = row.querySelector('.opening');
-            const priceCell = row.querySelector('.price');
+    // 5. Override the button click
+    function sendEmailNow() {
+      generateAndEmailReport();
+    }
 
-            if (openingInput) openingInput.value = item.opening || 0;
-            if (priceCell && item.price) priceCell.textContent = item.price;
+    // Listen for Email Results (optional, but good UX)
+    /* window.api.receive('email-success', () => { ... }); */
+
+    // 👇 Auto-fill opening stock from stock_data.json
+    async function logout() {
+      if (confirm('Are you sure you want to log out?')) {
+        await window.api.logout();
+      }
+    }
+
+    window.onload = async () => {
+      // Load current user
+      const user = await window.api.getCurrentUser();
+      if (user) {
+        document.getElementById('currentUserDisplay').textContent = `${user.name} (${user.role})`;
+      }
+
+      // Load staff list
+      try {
+        const staff = await window.api.getStaff();
+        const select = document.getElementById('staffSelect');
+        if (staff && staff.length > 0) {
+          select.innerHTML = staff.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+          // Pre-select current user if they are in the list
+          if (user) {
+            const userOption = Array.from(select.options).find(opt => opt.value === user.name);
+            if (userOption) select.value = user.name;
           }
-        });
-      })
-      .catch(err => console.warn('⚠️ Failed to load stock_data.json:', err));
-  };
-</script>
-  </body>
+        } else {
+          select.innerHTML = '<option>No staff found</option>';
+        }
+      } catch (err) {
+        console.error('Failed to load staff', err);
+      }
+      document.querySelectorAll('.price').forEach(cell => {
+        let text = cell.textContent.trim();
+        let match = text.match(/^UGX\s?(\d{4,})$/);
+        if (match) {
+          let num = parseInt(match[1], 10);
+          cell.textContent = "UGX " + num.toLocaleString();
+        }
+      });
+
+      fetch('stock_data.json')
+        .then(res => res.json())
+        .then(stock => {
+          stock.forEach(item => {
+            const row = [...document.querySelectorAll('.stock-row')].find(r =>
+              r.cells[0].innerText.trim() === item.item
+            );
+            if (row) {
+              const openingInput = row.querySelector('.opening');
+              const priceCell = row.querySelector('.price');
+
+              if (openingInput) openingInput.value = item.opening || 0;
+              if (priceCell && item.price) priceCell.textContent = item.price;
+            }
+          });
+        })
+        .catch(err => console.warn('⚠️ Failed to load stock_data.json:', err));
+    };
+  </script>
+</body>
+
 </html>

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SafeBar Manager - Professional Stock Management System">
+  <title>SafeBar Manager</title>
+  <link rel="icon" href="logo.png" type="image/png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    .col-item-name {
+      width: 25%;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: #222;
+      margin: 0;
+      padding: 15px;
+      font-size: 13px;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #003300 0%, #004d00 100%);
+      color: #f4af1b;
+      padding: 20px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    #logo {
+      height: 55px;
+      border-radius: 8px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .toolbar label {
+      font-weight: 600;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    select,
+    input[type="number"],
+    input[type="text"],
+    input[type="date"] {
+      padding: 8px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      background: #fafafa;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    select:focus,
+    input:focus {
+      outline: none;
+      border-color: #f4af1b;
+      box-shadow: 0 0 0 3px rgba(244, 175, 27, 0.2);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #f4af1b 0%, #e29b00 100%);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(244, 175, 27, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .settings-link {
+      margin-left: auto;
+      background: linear-gradient(135deg, #333 0%, #555 100%);
+      text-decoration: none;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.2s;
+    }
+
+    .settings-link:hover {
+      transform: translateY(-2px);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    table th {
+      background: linear-gradient(135deg, #003300 0%, #004d00 100%);
+      color: white;
+      font-weight: 600;
+      padding: 12px 8px;
+    }
+
+    table td {
+      padding: 8px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    table tr:hover {
+      background: #f8f9fa;
+    }
+
+    .category-header {
+      background: linear-gradient(90deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+      color: #003300 !important;
+      text-align: left !important;
+      font-weight: 700 !important;
+      padding: 10px 15px !important;
+    }
+
+    .stock-row input {
+      width: 70px;
+      text-align: center;
+    }
+
+    .price-cell {
+      font-weight: 600;
+      color: #003300;
+    }
+
+    .sold-positive {
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-weight: 700;
+    }
+
+    .sold-negative {
+      background: #ffebee;
+      color: #c62828;
+      font-weight: 700;
+    }
+
+    .summary-section {
+      margin-top: 20px;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .total-sales {
+      font-size: 24px;
+      font-weight: 700;
+      color: #003300;
+    }
+
+    .total-sales span {
+      color: #f4af1b;
+    }
+
+    .info-text {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      margin-top: 30px;
+      padding: 15px;
+      color: #888;
+    }
+
+    .footer span {
+      color: #f4af1b;
+      font-weight: 600;
+    }
+
+    .manager-section {
+      margin-top: 20px;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .manager-section h3 {
+      margin: 0 0 15px 0;
+      color: #003300;
+      font-size: 16px;
+    }
+
+    .manager-table {
+      width: 100%;
+    }
+
+    .manager-table input {
+      width: 100%;
+    }
+
+    @media print {
+
+      .toolbar,
+      .settings-link,
+      .btn {
+        display: none !important;
+      }
+
+      body {
+        background: white;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img id="logo" src="logo.png" alt="Logo">
+    <span id="businessTitle">SafeBar Manager</span>
+  </header>
+
+  <div class="toolbar">
+    <label>
+      📅 Date:
+      <input type="date" id="reportDate" title="Report Date">
+    </label>
+    <label>
+      👤 Staff:
+      <select id="staffSelect" title="Select Staff">
+        <!-- Populated from DB -->
+      </select>
+    </label>
+    <button class="btn" onclick="calculateSold()">🧮 Calculate</button>
+    <button class="btn" onclick="saveAllEntries()">💾 Save</button>
+    <button class="btn btn-secondary" onclick="printSheet()">🖨️ Print</button>
+    <button class="btn btn-secondary" onclick="exportExcel()">📊 Excel</button>
+    <button class="btn btn-secondary" onclick="exportPDF()">📄 PDF</button>
+    <button class="btn btn-success" id="sendReportBtn" onclick="sendEmailNow()">📧 Send Report</button>
+    <a href="settings.html" class="settings-link hidden" id="settingsLink">⚙️ Settings</a>
+    <button id="btnPurchases" class="btn btn-primary hidden" onclick="location.href='purchases.html'">💰
+      Purchases</button>
+    <button id="btnStock" class="btn btn-primary hidden" onclick="openStockModal()">📦 Manage Stock</button>
+    <button class="btn btn-secondary" onclick="logout()">🚪 Logout</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th class="col-item-name">Item</th>
+        <th>Opening</th>
+        <th>Received</th>
+        <th>Damaged</th>
+        <th>Closing</th>
+        <th>Sold</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody id="inventory-body">
+      <!-- Populated via JS from Database -->
+    </tbody>
+  </table>
+
+  <div class="summary-section">
+    <div class="total-sales">Total Sales: <span id="totalSales">0</span></div>
+    <div>
+      <p id="lastSent" class="info-text">Last sent: <em>Never</em></p>
+    </div>
+  </div>
+
+  <div class="manager-section">
+    <h3>📋 Drinks Taken by Manager/Director</h3>
+    <table class="manager-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Type</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="text" aria-label="Manager Drink Item 1" placeholder="Item Name"></td>
+          <td><input type="number" aria-label="Manager Drink Quantity 1" placeholder="0"></td>
+          <td><input type="text" aria-label="Manager Drink Type 1" placeholder="Type"></td>
+          <td><input type="number" aria-label="Manager Drink Amount 1" placeholder="0"></td>
+        </tr>
+        <tr>
+          <td><input type="text" aria-label="Manager Drink Item 2" placeholder="Item Name"></td>
+          <td><input type="number" aria-label="Manager Drink Quantity 2" placeholder="0"></td>
+          <td><input type="text" aria-label="Manager Drink Type 2" placeholder="Type"></td>
+          <td><input type="number" aria-label="Manager Drink Amount 2" placeholder="0"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer" id="footerText">
+    <span id="footerBusiness">SafeBar Manager</span> | Powered by SafeBar Manager
+  </div>
+
+  <script src="js/api-adapter.js"></script>
+  <script>
+    // Global state
+    let inventoryData = [];
+    let settings = {};
+    let currencySymbol = 'UGX';
+
+    let currentUser = null;
+
+    // ========== INITIALIZATION ==========
+    async function checkUserRole() {
+      const user = await window.api.getCurrentUser();
+      if (!user) {
+        window.api.logout();
+        return;
+      }
+      currentUser = user; // Set global
+
+      if (user.role === 'Manager' || user.role === 'Supervisor') {
+        const settingsLink = document.getElementById('settingsLink');
+        if (settingsLink) settingsLink.classList.remove('hidden');
+
+        const btnPurchases = document.getElementById('btnPurchases');
+        if (btnPurchases) btnPurchases.classList.remove('hidden');
+
+        const btnStock = document.getElementById('btnStock');
+        if (btnStock) btnStock.classList.remove('hidden');
+      }
+      if (user.role === 'Barstaff') {
+        const sendBtn = document.getElementById('sendReportBtn');
+        if (sendBtn) sendBtn.classList.add('hidden');
+      }
+    }
+
+    async function logout() {
+      await window.api.logout();
+    }
+
+    async function initApp() {
+      await checkUserRole();
+
+      // Set today's date
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('reportDate').value = today;
+
+      // Load settings
+      await loadSettings();
+
+      // Load staff dropdown
+      await loadStaff();
+
+      // Load inventory from database
+      await loadInventory();
+
+      // Setup IPC listeners
+      setupListeners();
+    }
+
+    async function loadSettings() {
+      settings = await window.api.getAllSettings();
+      currencySymbol = settings.currency || 'UGX';
+
+      // Update UI with business name
+      const businessName = settings.business_name || 'SafeBar Manager';
+      document.getElementById('businessTitle').textContent = businessName;
+      document.getElementById('footerBusiness').textContent = businessName;
+      document.title = businessName + ' - Stock Sheet';
+    }
+
+    async function loadStaff() {
+      const staff = await window.api.getStaff();
+      const select = document.getElementById('staffSelect');
+      select.innerHTML = staff.map(s =>
+        `<option value="${s.id}">${s.name}</option>`
+      ).join('');
+    }
+
+    async function loadInventory() {
+      const inventory = await window.api.getInventoryByCategory();
+      inventoryData = inventory;
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('inventory-body');
+      tbody.innerHTML = '';
+
+      for (const [category, items] of Object.entries(inventoryData)) {
+        // Category Header
+        const trHeader = document.createElement('tr');
+        const th = document.createElement('th');
+        th.colSpan = 7;
+        th.className = 'category-header';
+        th.textContent = category;
+        trHeader.appendChild(th);
+        tbody.appendChild(trHeader);
+
+        // Items
+        items.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.className = 'stock-row';
+          tr.dataset.itemId = item.id;
+          tr.dataset.price = item.price;
+
+          // Role-based Readonly
+          const isManager = currentUser && (currentUser.role === 'Manager' || currentUser.role === 'Supervisor');
+          const readonlyAttr = isManager ? '' : 'readonly';
+          const bgStyle = isManager ? '' : 'style="background-color: #f0f0f0;"';
+
+          tr.innerHTML = `
+            <td style="text-align: left; padding-left: 15px;">${item.name}</td>
+            <td><input class="opening" type="number" aria-label="Opening Stock for ${item.name}" value="0" min="0" readonly style="background-color: #f0f0f0;"></td>
+            <td><input class="received" type="number" aria-label="Received for ${item.name}" value="0" min="0" ${readonlyAttr} ${bgStyle}></td>
+            <td><input class="damaged" type="number" aria-label="Damaged for ${item.name}" value="0" min="0" ${readonlyAttr} ${bgStyle}></td>
+            <td><input class="closing" type="number" aria-label="Closing Stock for ${item.name}" value="0" min="0"></td>
+            <td><input class="sold" type="number" readonly aria-label="Sold for ${item.name}" value="0" style="background-color: #f0f0f0; font-weight: bold;"></td>
+            <td class="price-cell">${currencySymbol} ${item.price.toLocaleString()}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Load previous closing stock as today's opening
+      loadOpeningStock();
+    }
+
+    async function loadOpeningStock() {
+      const rows = document.querySelectorAll('.stock-row');
+      for (const row of rows) {
+        const itemId = parseInt(row.dataset.itemId);
+        const lastClosing = await window.api.getLastClosingStock(itemId);
+        row.querySelector('.opening').value = lastClosing || 0;
+      }
+    }
+
+    // ========== CALCULATIONS ==========
+    function calculateSold() {
+      let total = 0;
+      document.querySelectorAll('.stock-row').forEach(row => {
+        const opening = parseInt(row.querySelector('.opening').value) || 0;
+        const received = parseInt(row.querySelector('.received').value) || 0;
+        const damaged = parseInt(row.querySelector('.damaged').value) || 0;
+        const closing = parseInt(row.querySelector('.closing').value) || 0;
+        const price = parseInt(row.dataset.price) || 0;
+
+        const sold = opening + received - damaged - closing;
+        const soldField = row.querySelector('.sold');
+        soldField.value = sold;
+
+        // Style based on positive/negative
+        soldField.classList.remove('sold-positive', 'sold-negative');
+        if (sold > 0) {
+          soldField.classList.add('sold-positive');
+        } else if (sold < 0) {
+          soldField.classList.add('sold-negative');
+        }
+
+        total += sold * price;
+      });
+
+      document.getElementById('totalSales').textContent =
+        currencySymbol + ' ' + total.toLocaleString();
+    }
+
+    // ========== SAVE DATA ==========
+    async function saveAllEntries() {
+      const dateStr = document.getElementById('reportDate').value;
+      const rows = document.querySelectorAll('.stock-row');
+
+      for (const row of rows) {
+        const itemId = parseInt(row.dataset.itemId);
+        const opening = parseInt(row.querySelector('.opening').value) || 0;
+        const received = parseInt(row.querySelector('.received').value) || 0;
+        const damaged = parseInt(row.querySelector('.damaged').value) || 0;
+        const closing = parseInt(row.querySelector('.closing').value) || 0;
+        const sold = parseInt(row.querySelector('.sold').value) || 0;
+
+        const entry = {
+          dateStr, itemId, opening, received, damaged, closing, sold
+        };
+
+        // Fraud Check (Web Only Feature)
+        if (window.api.checkFraud) {
+          const fraudAlerts = window.api.checkFraud({ ...entry, itemName: row.cells[0].innerText });
+          if (fraudAlerts && fraudAlerts.length > 0) {
+            // Collect alerts or stop
+            console.warn('Fraud Alert:', fraudAlerts);
+            if (!confirm(`Warning for ${row.cells[0].innerText}:\n${fraudAlerts.join('\n')}\n\nSave anyway?`)) {
+              continue; // Skip saving this row
+            }
+          }
+        }
+
+        await window.api.saveStockEntry(entry);
+      }
+
+      // Save daily report summary
+      const staffSelect = document.getElementById('staffSelect');
+      const staffName = staffSelect.options[staffSelect.selectedIndex]?.text || '';
+      const totalText = document.getElementById('totalSales').textContent;
+      const totalSales = parseInt(totalText.replace(/[^\d]/g, '')) || 0;
+
+      await window.api.saveDailyReport({
+        dateStr,
+        staffName,
+        totalSales,
+        reportData: collectReportData()
+      });
+
+      alert('✅ Data saved successfully!');
+    }
+
+    function collectReportData() {
+      const data = [];
+      document.querySelectorAll('.stock-row').forEach(row => {
+        data.push({
+          item: row.cells[0].innerText,
+          opening: row.querySelector('.opening').value,
+          received: row.querySelector('.received').value,
+          damaged: row.querySelector('.damaged').value,
+          closing: row.querySelector('.closing').value,
+          sold: row.querySelector('.sold').value,
+        });
+      });
+      return data;
+    }
+
+    // ========== EXPORT FUNCTIONS ==========
+    function printSheet() {
+      window.print();
+    }
+
+    function exportExcel() {
+      const wb = XLSX.utils.book_new();
+      const ws_data = [["Item", "Opening", "Received", "Damaged", "Closing", "Sold", "Price"]];
+
+      document.querySelectorAll('.stock-row').forEach(row => {
+        ws_data.push([
+          row.cells[0].innerText,
+          row.querySelector('.opening').value || "0",
+          row.querySelector('.received').value || "0",
+          row.querySelector('.damaged').value || "0",
+          row.querySelector('.closing').value || "0",
+          row.querySelector('.sold').value || "0",
+          row.querySelector('.price-cell')?.innerText || ""
+        ]);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      XLSX.utils.book_append_sheet(wb, ws, "Sales");
+
+      const businessName = settings.business_name || 'SafeBar';
+      const filename = `${businessName.replace(/\s+/g, '_')}_Sales_${document.getElementById('reportDate').value}.xlsx`;
+      XLSX.writeFile(wb, filename);
+    }
+
+    async function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let y = 15;
+
+      const businessName = settings.business_name || 'SafeBar Manager';
+      const reportDate = document.getElementById('reportDate').value;
+
+      doc.setFontSize(16);
+      doc.text(businessName + ' - Sales Report', 10, y);
+      y += 10;
+
+      doc.setFontSize(11);
+      doc.text(`Date: ${reportDate}`, 10, y);
+      y += 8;
+
+      const staffSelect = document.getElementById('staffSelect');
+      const staffName = staffSelect.options[staffSelect.selectedIndex]?.text || 'N/A';
+      doc.text(`Staff: ${staffName}`, 10, y);
+      y += 10;
+
+      doc.setFontSize(10);
+      document.querySelectorAll('.stock-row').forEach(row => {
+        const item = row.cells[0].innerText;
+        const opening = row.querySelector('.opening').value || "0";
+        const sold = row.querySelector('.sold').value || "0";
+        const price = row.querySelector('.price-cell')?.innerText || "";
+
+        doc.text(`${item}: Sold ${sold} | ${price}`, 10, y);
+        y += 6;
+
+        if (y > 280) {
+          doc.addPage();
+          y = 15;
+        }
+      });
+
+      y += 5;
+      const totalText = document.getElementById('totalSales').textContent;
+      doc.setFontSize(12);
+      doc.text(`TOTAL SALES: ${totalText}`, 10, y);
+
+      const filename = `${businessName.replace(/\s+/g, '_')}_Sales_${reportDate}.pdf`;
+      doc.save(filename);
+    }
+
+    // ========== EMAIL REPORT ==========
+    async function generateAndEmailReport() {
+      const btn = document.getElementById('sendReportBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Generating...';
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let y = 15;
+
+      const businessName = settings.business_name || 'SafeBar Manager';
+      const reportDate = document.getElementById('reportDate').value;
+
+      doc.setFontSize(16);
+      doc.text(businessName + ' - Sales Report', 10, y);
+      y += 10;
+
+      doc.setFontSize(11);
+      doc.text(`Date: ${reportDate}`, 10, y);
+      y += 10;
+
+      doc.setFontSize(10);
+      document.querySelectorAll('.stock-row').forEach(row => {
+        const item = row.cells[0].innerText;
+        const sold = row.querySelector('.sold').value || "0";
+        const price = row.querySelector('.price-cell')?.innerText || "";
+
+        doc.text(`${item}: Sold ${sold} | ${price}`, 10, y);
+        y += 6;
+
+        if (y > 280) {
+          doc.addPage();
+          y = 15;
+        }
+      });
+
+      y += 5;
+      const totalText = document.getElementById('totalSales').textContent;
+      doc.setFontSize(12);
+      doc.text(`TOTAL SALES: ${totalText}`, 10, y);
+
+      // Convert to buffer
+      const pdfArrayBuffer = doc.output('arraybuffer');
+      const filename = `${businessName.replace(/\s+/g, '_')}_${reportDate}.pdf`;
+
+      btn.textContent = '💾 Saving...';
+      if (window.api) {
+        window.api.send('save-pdf', { buffer: pdfArrayBuffer, name: filename });
+      } else {
+        alert('❌ API not available. Running outside Electron?');
+        btn.disabled = false;
+        btn.textContent = '📧 Send Report';
+      }
+    }
+
+    function sendEmailNow() {
+      generateAndEmailReport();
+    }
+
+    function setupListeners() {
+      if (window.api) {
+        window.api.receive('report-saved', (filePath) => {
+          console.log('PDF Saved:', filePath);
+          const btn = document.getElementById('sendReportBtn');
+          const confirm = window.confirm(`✅ Report saved!\n\n${filePath}\n\nSend via email now?`);
+
+          if (confirm) {
+            btn.textContent = '📨 Sending...';
+            window.api.send('send-pdf-email', filePath);
+          } else {
+            btn.disabled = false;
+            btn.textContent = '📧 Send Report';
+          }
+
+          // Update last sent timestamp
+          document.getElementById('lastSent').innerHTML =
+            `Last saved: <em>${new Date().toLocaleString()}</em>`;
+        });
+      }
+    }
+
+    // Initialize on load
+    initApp();
+  </script>
+</body>
+
+</html>

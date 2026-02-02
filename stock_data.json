@@ -1,0 +1,142 @@
+[
+    {
+        "item": "Nile Special",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Club",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Castle Lite",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Stella Artois",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Heineken",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Tusker Lager",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Tusker Malt",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Tusker Apple",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Bell",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Guinness",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Coca Cola",
+        "opening": 0,
+        "price": "UGX 4,000"
+    },
+    {
+        "item": "Fanta",
+        "opening": 0,
+        "price": "UGX 4,000"
+    },
+    {
+        "item": "Sprite",
+        "opening": 0,
+        "price": "UGX 4,000"
+    },
+    {
+        "item": "Soda Water",
+        "opening": 0,
+        "price": "UGX 4,000"
+    },
+    {
+        "item": "Tonic Water",
+        "opening": 0,
+        "price": "UGX 4,000"
+    },
+    {
+        "item": "Stoney",
+        "opening": 0,
+        "price": "UGX 4,000"
+    },
+    {
+        "item": "Novida",
+        "opening": 0,
+        "price": "UGX 4,000"
+    },
+    {
+        "item": "Mineral Water Big",
+        "opening": 0,
+        "price": "UGX 6,000"
+    },
+    {
+        "item": "Mineral Water Small",
+        "opening": 0,
+        "price": "UGX 3,000"
+    },
+    {
+        "item": "Smirnoff Ice Black",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Glenlivet Shots",
+        "opening": 0,
+        "price": "UGX 15,000"
+    },
+    {
+        "item": "Uganda Waragi",
+        "opening": 0,
+        "price": "UGX 8,000"
+    },
+    {
+        "item": "Black Label",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Red Label",
+        "opening": 0,
+        "price": "UGX 8,000"
+    },
+    {
+        "item": "Smirnoff Vodka",
+        "opening": 0,
+        "price": "UGX 8,000"
+    },
+    {
+        "item": "Baileys",
+        "opening": 0,
+        "price": "UGX 10,000"
+    },
+    {
+        "item": "Amarula",
+        "opening": 0,
+        "price": "UGX 8,000"
+    },
+    {
+        "item": "Tequila Shot",
+        "opening": 0,
+        "price": "UGX 8,000"
+    }
+]

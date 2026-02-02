@@ -1,2 +1,10 @@
-node_modules 
-.env 
+node_modules/
+dist/
+release/
+*.zip
+safebar.db
+safebar.db-shm
+safebar.db-wal
+.env
+.DS_Store
+Thumbs.db

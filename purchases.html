@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase & Expenditure - SafeBar Manager</title>
+    <link rel="stylesheet" href="css/settings.css">
+    <link rel="stylesheet" href="docs/style.css">
+    <style>
+        .finance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .finance-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .finance-card h3 {
+            color: #555;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .finance-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #004d00;
+        }
+
+        .negative {
+            color: #d9534f !important;
+        }
+
+        .purchase-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .input-readonly {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <img src="logo.png" alt="Logo" id="logo">
+                <span class="header-title">Expenditure & Financials</span>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-secondary" onclick="location.href='index.html'">🏠 Home</button>
+            </div>
+        </header>
+
+        <!-- Financial Summary -->
+        <div class="inventory-container">
+            <h2>Today's Financials</h2>
+            <div class="finance-grid">
+                <div class="finance-card">
+                    <h3>Total Sales (Est)</h3>
+                    <div class="value" id="valSales">0</div>
+                </div>
+                <div class="finance-card">
+                    <h3>Total Purchases</h3>
+                    <div class="value negative" id="valPurchases">0</div>
+                </div>
+                <div class="finance-card">
+                    <h3>Net Logic</h3>
+                    <div class="value" id="valNet">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Purchase -->
+        <div class="inventory-container">
+            <h2>Log New Purchase</h2>
+            <div class="purchase-form">
+                <div class="form-group">
+                    <label for="pItemSelect">Item Name</label>
+                    <select id="pItemSelect" aria-label="Purchase Item Selector">
+                        <option>Loading...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="pQuantity">Quantity (Bottles/Crates)</label>
+                    <input type="number" id="pQuantity" placeholder="Qty" aria-label="Purchase Quantity">
+                </div>
+                <div class="form-group">
+                    <label>Unit Cost</label>
+                    <input type="number" id="pCost" placeholder="Cost per Unit">
+                </div>
+                <div class="form-group">
+                    <label for="pTotal">Total Cost (Auto)</label>
+                    <input type="text" id="pTotal" aria-label="Total Cost Calculation" readonly class="input-readonly">
+                </div>
+                <button class="btn btn-primary" onclick="addPurchase()">➕ Log Purchase</button>
+            </div>
+
+            <h3>Recent Purchases</h3>
+            <table id="purchaseTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Unit Cost</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="purchaseBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/api-adapter.js"></script>
+    <script>
+        let inventory = [];
+        let purchases = [];
+
+        // Init
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadInventory();
+            await loadPurchases();
+            await loadSalesEstimate(); // Needs logic to fetch daily sales
+        });
+
+        async function loadInventory() {
+            const data = await window.api.getInventory();
+            inventory = data;
+            const select = document.getElementById('pItemSelect');
+            select.innerHTML = data.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+        }
+
+        async function loadPurchases() {
+            const today = new Date().toISOString().split('T')[0];
+            const data = await window.api.getPurchases(today);
+            purchases = data;
+
+            const tbody = document.getElementById('purchaseBody');
+            tbody.innerHTML = data.map(p => `
+                <tr>
+                    <td>${p.date}</td>
+                    <td>${p.inventory ? p.inventory.name : 'Unknown'}</td>
+                    <td>${p.quantity}</td>
+                    <td>${Number(p.unit_cost).toLocaleString()}</td>
+                    <td>${Number(p.total_cost).toLocaleString()}</td>
+                    <td><button class="btn btn-secondary" disabled>Edit</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadSalesEstimate() {
+            const today = new Date().toISOString().split('T')[0];
+            const fin = await window.api.getDailyFinancials(today);
+
+            document.getElementById('valSales').textContent = Number(fin.sales).toLocaleString();
+            document.getElementById('valPurchases').textContent = Number(fin.expenditure).toLocaleString();
+
+            const netEl = document.getElementById('valNet');
+            netEl.textContent = Number(fin.net).toLocaleString();
+            netEl.className = 'value ' + (fin.net >= 0 ? '' : 'negative');
+        }
+
+        // Auto-calc total
+        const inputs = ['pQuantity', 'pCost'];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                const qty = document.getElementById('pQuantity').value || 0;
+                const cost = document.getElementById('pCost').value || 0;
+                document.getElementById('pTotal').value = (qty * cost).toLocaleString();
+            });
+        });
+
+        async function addPurchase() {
+            const itemId = document.getElementById('pItemSelect').value;
+            const qty = document.getElementById('pQuantity').value;
+            const cost = document.getElementById('pCost').value;
+
+            if (!qty || !cost) return alert('Please enter quantity and cost');
+
+            const payload = {
+                date: new Date().toISOString().split('T')[0],
+                item_id: itemId,
+                quantity: qty,
+                unit_cost: cost,
+                total_cost: qty * cost,
+                added_by: 'Manager' // In real app, get from currentUser
+            };
+
+            const res = await window.api.addPurchase(payload);
+            if (res.success) {
+                alert('Purchase Logged!');
+                document.getElementById('pQuantity').value = '';
+                document.getElementById('pCost').value = '';
+                loadPurchases();
+                loadSalesEstimate();
+            } else {
+                alert('Error: ' + res.error);
+            }
+        }
+    </script>
+</body>
+
+</html>
